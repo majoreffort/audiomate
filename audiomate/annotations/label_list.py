@@ -1,5 +1,6 @@
 import collections
 import copy
+import os
 
 import intervaltree
 
@@ -670,3 +671,44 @@ class LabelList(object):
             ll.add(Label(label_value))
 
         return ll
+
+
+class OnDemandLabelList(LabelList):
+    __slots__ = ['idx', 'label_tree', 'utterance', 'start', 'count']
+    '''
+    start in bytes
+    count in lines (int)
+    '''
+    def __init__(self, start, count, idx='default', labels=None):
+        self.idx = idx
+        self.utterance = None
+        self.start = start
+        self.count = count
+        self.label_tree = intervaltree.IntervalTree()
+
+        if labels is not None:
+            self.update(labels)
+
+    def fetch(self, corpus):
+        labelList = []
+        path = os.path.join(corpus.path, 'labels_{}.txt'.format(self.idx))
+        if not os.path.isfile(path):
+            print('File doesnt exist or is no file: {}'.format(path))
+            return
+        with open(path, 'r', errors='ignore', encoding='utf-8') as file:
+            file.seek(self.start, 0)
+            for _ in range(self.count):
+                line = file.readline()
+                stripped_line = line.strip()
+                if stripped_line != '':
+                    record = stripped_line.split(sep=' ', maxsplit=4)
+                    record = [field.strip() for field in record]
+                    label = record[3]
+                    start = float(record[1])
+                    end = float(record[2])
+
+                    if end == -1:
+                        end = float('inf')
+
+                    labelList.append(Label(label, start, end))
+            return labelList
