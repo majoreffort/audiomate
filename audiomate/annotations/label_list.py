@@ -689,7 +689,7 @@ class OnDemandLabelList(LabelList):
         if labels is not None:
             self.update(labels)
 
-    def fetch(self, corpus):
+    def fetch(self, corpus, idx=-1):
         labelList = []
         path = os.path.join(corpus.path, 'labels_{}.txt'.format(self.idx))
         if not os.path.isfile(path):
@@ -697,7 +697,7 @@ class OnDemandLabelList(LabelList):
             return
         with open(path, 'r', errors='ignore', encoding='utf-8') as file:
             file.seek(self.start, 0)
-            for _ in range(self.count):
+            for index in range(self.count):
                 line = file.readline()
                 stripped_line = line.strip()
                 if stripped_line != '':
@@ -709,6 +709,7 @@ class OnDemandLabelList(LabelList):
 
                     if end == -1:
                         end = float('inf')
-
                     labelList.append(Label(label, start, end))
+                    if idx == index:
+                        break
             return labelList
