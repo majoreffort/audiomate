@@ -192,7 +192,7 @@ class OnDemandDefaultReader(base.CorpusReader):
                 if cur_utt_idx != None:
                     ll = annotations.OnDemandLabelList(idx=label_idx, start=start_pos, count=count)
                     corpus.utterances[cur_utt_idx].set_label_list(ll)
-
+            cur_pos = f.tell()
             line = f.readline()
             while line != '':
                 stripped_line = line.strip()
@@ -202,9 +202,10 @@ class OnDemandDefaultReader(base.CorpusReader):
                 if utt_idx != cur_utt_idx:
                     save()
                     cur_utt_idx = utt_idx
-                    start_pos = f.tell()
+                    start_pos = cur_pos
                     count = 0
                 count += 1
+                cur_pos = f.tell()
                 line = f.readline()
             save()
 
