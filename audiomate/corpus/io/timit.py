@@ -1,5 +1,6 @@
 import os
 import glob
+import sys
 
 import audiomate
 from audiomate import annotations
@@ -75,12 +76,18 @@ class TimitReader(base.CorpusReader):
 
                             word_ll = annotations.LabelList(idx=audiomate.corpus.LL_WORD_TRANSCRIPT)
 
+                            skip = False
                             for record in words:
                                 start = int(record[0]) / 16000
                                 end = int(record[1]) / 16000
-                                if start == end: raise Exception('Zero-length word in {}, utt: {}'.format(words_path, utt_idx))
+                                if start == end:
+                                    print('Warning: Skipping {} because of zero-length aligned word "{}"'.format(utt_idx, record[2]), file=sys.stderr)
+                                    skip = True
+                                    part_utt_ids.remove(utt_idx)
+                                    break
+                                #if start == end: raise Exception('Zero-length word in {}, utt: {}'.format(words_path, utt_idx))
                                 word_ll.addl(record[2], start=start, end=end)
-
+                            if skip: continue
                             utt.set_label_list(word_ll)
 
                             phone_ll = annotations.LabelList(idx=audiomate.corpus.LL_PHONE_TRANSCRIPT)
@@ -88,9 +95,14 @@ class TimitReader(base.CorpusReader):
                             for record in phones:
                                 start = int(record[0]) / 16000
                                 end = int(record[1]) / 16000
-                                if start == end: raise Exception('Zero-length phone in {}, utt: {}'.format(phones_path, utt_idx))
+                                if start == end:
+                                    print('Warning: Skipping {} because of zero-length aligned phone "{}"'.format(utt_idx, record[2]), file=sys.stderr)
+                                    skip = True
+                                    part_utt_ids.remove(utt_idx)
+                                    break
+                                #if start == end: raise Exception('Zero-length phone in {}, utt: {}'.format(phones_path, utt_idx))
                                 phone_ll.addl(record[2], start=start, end=end)
-
+                            if skip: continue
                             utt.set_label_list(phone_ll)
 
             filter = subset.MatchingUtteranceIdxFilter(utterance_idxs=part_utt_ids)
