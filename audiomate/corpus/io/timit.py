@@ -78,6 +78,7 @@ class TimitReader(base.CorpusReader):
                             for record in words:
                                 start = int(record[0]) / 16000
                                 end = int(record[1]) / 16000
+                                if start == end: raise Exception('Zero-length word in {}, utt: {}'.format(words_path, utt_idx))
                                 word_ll.addl(record[2], start=start, end=end)
 
                             utt.set_label_list(word_ll)
@@ -87,6 +88,7 @@ class TimitReader(base.CorpusReader):
                             for record in phones:
                                 start = int(record[0]) / 16000
                                 end = int(record[1]) / 16000
+                                if start == end: raise Exception('Zero-length phone in {}, utt: {}'.format(phones_path, utt_idx))
                                 phone_ll.addl(record[2], start=start, end=end)
 
                             utt.set_label_list(phone_ll)
